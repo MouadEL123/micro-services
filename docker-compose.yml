@@ -1,0 +1,88 @@
+services:
+  discovery-service:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - '8761:8761'
+    expose:
+      - '8761'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 5s
+      retries: 4
+  config-service:
+    build: ./config-server
+    container_name: config-service
+    ports:
+      - '8084:8084'
+    expose:
+      - '8084'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/actuator/health" ]
+      interval: 5s
+      retries: 4
+    depends_on:
+      discovery-service:
+        condition: service_healthy
+  customer-service:
+    build: ./customer-service
+    container_name: customer-service
+    ports:
+      - '8082:8082'
+    expose:
+      - '8082'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8084
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/actuator/health" ]
+      interval: 5s
+      retries: 4
+    depends_on:
+      config-service:
+        condition: service_healthy
+  account-service:
+    build: ./account-service
+    container_name: account-service
+    ports:
+      - '8081:8081'
+    expose:
+      - '8081'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8084
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/actuator/health" ]
+      interval: 5s
+      retries: 4
+    depends_on:
+      customer-service:
+        condition: service_healthy
+  gateway-service:
+    build: ./gateway-service
+    container_name: gateway-service
+    ports:
+      - '8083:8083'
+    expose:
+      - '8083'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-service:8084
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/actuator/health" ]
+      interval: 5s
+      retries: 4
+    depends_on:
+      account-service:
+        condition: service_healthy
+  banking-front-end:
+    build: ./banking-front-end
+    ports:
+      - '80:80'
+    expose:
+      - '80'
+
+
+
