@@ -22,6 +22,7 @@ public class ConfigRestController {
     private int x2;
     @Autowired
     ConfigGlobal configGlobal;
+    // aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
     @GetMapping("/config")
     public Map<String , Integer> getConfig(){
         return Map.of("x1",configGlobal.getX1(),"x2", configGlobal.getX1(),"p1",p1,"p2",p2);
